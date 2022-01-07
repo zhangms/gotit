@@ -42,6 +42,11 @@ func CreateJob(watermark image.Image, root string, path string) *Job {
 	}
 }
 
+const (
+	imageTypeJPEG = "JPEG"
+	imageTypePNG  = "PNG"
+)
+
 type Job struct {
 	root string
 	path string
@@ -49,19 +54,27 @@ type Job struct {
 }
 
 func (job *Job) Do() error {
-	background, err := gg.LoadImage(job.path)
+	//make dir
 	dest := job.getDest()
-	if err != nil {
+	dir := filepath.Dir(dest)
+	_ = os.MkdirAll(dir, fs.ModePerm)
+	//mark
+	fileType := job.getFileType()
+	switch fileType {
+	case imageTypePNG, imageTypeJPEG:
+		background, err := gg.LoadImage(job.path)
+		if err != nil {
+			return err
+		}
+		marked := job.drawMark(background)
+		return job.save(marked, fileType, dest)
+	default:
 		dt, er := os.ReadFile(job.path)
 		if er != nil {
-			dir := filepath.Dir(dest)
-			_ = os.MkdirAll(dir, fs.ModePerm)
 			_ = os.WriteFile(dest, dt, fs.ModePerm)
 		}
-		return errors.New("加载失败，拷贝：" + job.path)
+		return errors.New("未知类型，直接拷贝：" + job.path)
 	}
-	markImage := job.drawMark(background)
-	return job.saveImage(markImage, dest)
 }
 
 func (job *Job) drawMark(background image.Image) image.Image {
@@ -86,29 +99,31 @@ func (job *Job) drawMark(background image.Image) image.Image {
 	return dc.Image()
 }
 
-func (job *Job) saveImage(img image.Image, dest string) error {
-	dir := filepath.Dir(dest)
-	_ = os.MkdirAll(dir, fs.ModePerm)
-	arr := strings.Split(dest, ".")
-	suffix := arr[len(arr)-1]
-	var err error = nil
-	switch suffix {
-	case "jpg", "JPG", "jpeg", "JPEG":
-		err = gg.SaveJPG(dest, img, 100)
-		break
-	case "png", "PNG":
-		err = gg.SavePNG(dest, img)
-		break
+func (job *Job) save(img image.Image, fileType string, dest string) error {
+	switch fileType {
+	case imageTypeJPEG:
+		return gg.SaveJPG(dest, img, 100)
+	case imageTypePNG:
+		return gg.SavePNG(dest, img)
 	default:
-		err = errors.New("不支持的图片类型")
-		break
+		return nil
 	}
-	if err != nil {
-		return errors.New("保存失败：" + dest + "," + err.Error())
-	}
-	return nil
 }
 
 func (job *Job) getDest() string {
 	return strings.Replace(job.path, filepath.Join(job.root, "mark"), filepath.Join(job.root, "mark_new"), 1)
+}
+
+func (job *Job) getFileType() string {
+	dest := job.getDest()
+	arr := strings.Split(dest, ".")
+	suffix := arr[len(arr)-1]
+	switch suffix {
+	case "jpg", "JPG", "jpeg", "JPEG":
+		return imageTypeJPEG
+	case "png", "PNG":
+		return imageTypePNG
+	default:
+		return suffix
+	}
 }

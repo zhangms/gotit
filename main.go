@@ -5,19 +5,20 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gotit/watermark"
 	"os"
 	"os/signal"
-	"test/watermark"
 )
 
 func main() {
 	action := flag.String("action", "watermark", "watermark")
 	workspace := flag.String("workspace", ".", "workspace")
+	routine := flag.Int("routine", 10, "routine count")
 	flag.Parse()
 	switch *action {
 	case "watermark":
 		watermark.Usage()
-		watermark.DoMark(*workspace)
+		watermark.DoMark(*workspace, *routine)
 	}
 
 	fmt.Println("----------------------")

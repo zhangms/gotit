@@ -1,4 +1,4 @@
-module test
+module gotit
 
 go 1.16
 
