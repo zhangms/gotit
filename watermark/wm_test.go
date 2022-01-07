@@ -5,5 +5,6 @@ import (
 )
 
 func TestCreateJobs(t *testing.T) {
-	DoMark("/Users/zms/Downloads/workspace2")
+	Usage()
+	DoMark("/Users/zms/Downloads/workspace")
 }

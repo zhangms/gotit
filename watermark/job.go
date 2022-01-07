@@ -6,19 +6,25 @@ import (
 	"github.com/fogleman/gg"
 	"image"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
 func CreateJobs(root string) ([]*Job, error) {
-	markPath := filepath.Join(root, "mark.png")
-	watermark, err := gg.LoadImage(markPath)
+	markPNG := filepath.Join(root, "mark.png")
+	watermark, err := gg.LoadImage(markPNG)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("水印图片加载失败，请检查 %s 是否存在", markPath))
+		return nil, errors.New(fmt.Sprintf("水印图片加载失败，请检查 %s 是否存在", markPNG))
+	}
+	markDir := filepath.Join(root, "mark")
+	dir, err := os.Stat(markDir)
+	if os.IsNotExist(err) || !dir.IsDir() {
+		return nil, errors.New(fmt.Sprintf("工作目录 %s 不存在", markDir))
 	}
 	ret := make([]*Job, 0)
-	_ = filepath.WalkDir(filepath.Join(root, "mark"), func(path string, d fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(markDir, func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
 			job := CreateJob(watermark, root, path)
 			ret = append(ret, job)
@@ -60,32 +66,22 @@ func (job *Job) Do() error {
 
 func (job *Job) drawMark(background image.Image) image.Image {
 	dc := gg.NewContextForImage(background)
-	dc.Push()
 
 	bgw := background.Bounds().Dx()
 	bgh := background.Bounds().Dy()
 	mw := job.mark.Bounds().Dx()
 	mh := job.mark.Bounds().Dy()
 
-	if mw > bgw {
-		//水印比背景宽
-		scale := 0.5 * float64(bgw) / float64(mw)
-		x := float64(bgw / 4)
-		y := float64(bgh / 2)
-		dc.ScaleAbout(scale, scale, x, y)
-		dc.DrawImage(job.mark, 0, 0)
-	} else if mh > bgh {
-		//水印比背景高
-		scale := 0.5 * float64(bgh) / float64(mh)
-		x := float64(bgw / 4)
-		y := float64(bgh / 2)
-		dc.ScaleAbout(scale, scale, x, y)
-		dc.DrawImage(job.mark, 0, 0)
-	} else {
-		x := (bgw - mw) / 2
-		y := (bgh - mh) / 2
-		dc.DrawImage(job.mark, x, y)
-	}
+	rate := 0.75
+	scaleX := float64(bgw) * rate / float64(mw)
+	scaleY := float64(bgh) * rate / float64(mh)
+	scale := math.Min(scaleX, scaleY)
+	mwr := float64(mw) * scale
+	mhr := float64(mh) * scale
+
+	dc.Push()
+	dc.ScaleAbout(scale, scale, (float64(bgw)-mwr)/2, (float64(bgh)-mhr)/2)
+	dc.DrawImage(job.mark, (bgw-int(mwr))/2, (bgh-int(mhr))/2)
 	dc.Pop()
 	return dc.Image()
 }
