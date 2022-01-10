@@ -26,12 +26,12 @@ func Usage() {
 	msg = append(msg, "  |-mark")
 	msg = append(msg, "    |-1.jpg")
 	msg = append(msg, "    |-2.png")
-	msg = append(msg, "  | |-dir1")
-	msg = append(msg, "  |   |-a.jpg")
-	msg = append(msg, "  |   |-b.jpeg")
-	msg = append(msg, "  | |-dir2")
-	msg = append(msg, "  |   |-c.png")
-	msg = append(msg, "  |   |-d.PNG")
+	msg = append(msg, "    |-dir1")
+	msg = append(msg, "      |-a.jpg")
+	msg = append(msg, "      |-b.jpeg")
+	msg = append(msg, "    |-dir2")
+	msg = append(msg, "      |-c.png")
+	msg = append(msg, "      |-d.PNG")
 	msg = append(msg, "----------------------------------------------------")
 
 	for _, m := range msg {
