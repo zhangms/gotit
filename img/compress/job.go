@@ -49,7 +49,11 @@ func CreateJobs(root string) (*Jobs, error) {
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("请检查 %s 是否存在", apikeyFile))
 	}
-	apikey := strings.TrimSpace(string(data))
+	keys := strings.TrimSpace(string(data))
+	keys = strings.ReplaceAll(keys, "\n\r", "\n")
+	keys = strings.ReplaceAll(keys, "\r\n", "\n")
+	keys = strings.ReplaceAll(keys, "\r", "\n")
+	apikeys := strings.Split(keys, "\n")
 	compressDir := filepath.Join(root, "compress")
 	dir, err := os.Stat(compressDir)
 	if os.IsNotExist(err) || !dir.IsDir() {
@@ -58,7 +62,7 @@ func CreateJobs(root string) (*Jobs, error) {
 	ret := make([]*Job, 0)
 	_ = filepath.WalkDir(compressDir, func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && !strings.HasPrefix(d.Name(), ".") {
-			job := CreateJob(apikey, root, path)
+			job := CreateJob(apikeys, root, path)
 			ret = append(ret, job)
 		}
 		return nil
@@ -68,7 +72,7 @@ func CreateJobs(root string) (*Jobs, error) {
 	}, nil
 }
 
-func CreateJob(apikey string, root string, path string) *Job {
+func CreateJob(apikey []string, root string, path string) *Job {
 	return &Job{
 		root:   root,
 		path:   path,
@@ -79,7 +83,7 @@ func CreateJob(apikey string, root string, path string) *Job {
 type Job struct {
 	root   string
 	path   string
-	apikey string
+	apikey []string
 	input  int
 	output int
 }
@@ -147,34 +151,42 @@ type compressResponse struct {
 	}
 }
 
-func sendCompressRequest(apikey string, data []byte) (*compressResponse, error) {
-	request, err := http.NewRequest("POST", "https://api.tinify.com/shrink", bytes.NewReader(data))
-	if err != nil {
-		return nil, err
-	}
-	auth := base64.StdEncoding.EncodeToString([]byte("api:" + apikey))
-	request.Header.Add("Authorization", fmt.Sprintf("Basic %s", auth))
-	cli := &http.Client{}
-	response, err := cli.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
+func sendCompressRequest(apiKeys []string, data []byte) (*compressResponse, error) {
+	var globalErr error
+	for _, apikey := range apiKeys {
+		apikey = strings.TrimSpace(apikey)
+		if len(apikey) != len("45STxM73yGSTsQg6mFSvdV5XBX3zghr4") {
+			continue
+		}
+		request, err := http.NewRequest("POST", "https://api.tinify.com/shrink", bytes.NewReader(data))
+		if err != nil {
+			return nil, err
+		}
+		auth := base64.StdEncoding.EncodeToString([]byte("api:" + apikey))
+		request.Header.Add("Authorization", fmt.Sprintf("Basic %s", auth))
+		cli := &http.Client{}
+		response, err := cli.Do(request)
+		if err != nil {
+			return nil, err
+		}
+		responseData, err := ioutil.ReadAll(response.Body)
 		_ = response.Body.Close()
-	}()
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+		ret := compressResponse{}
+		err = json.Unmarshal(responseData, &ret)
+		if err != nil {
+			globalErr = err
+			continue
+		}
+		if len(ret.Error) > 0 {
+			globalErr = errors.New(string(responseData))
+			continue
+		}
+		return &ret, nil
 	}
-	ret := compressResponse{}
-	err = json.Unmarshal(responseData, &ret)
-	if err != nil {
-		return nil, err
-	}
-	if len(ret.Error) > 0 {
-		return nil, errors.New(string(responseData))
-	}
-	return &ret, nil
+	return nil, globalErr
 }
 
 func downloadAndSave(url string, dest string) error {
