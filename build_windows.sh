@@ -3,4 +3,4 @@
 go generate
 export GOOS=windows
 export GOARCH=amd64
-go build -o mark.exe
+go build -o gotit.exe
