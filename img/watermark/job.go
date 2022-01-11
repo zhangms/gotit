@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fogleman/gg"
+	"gotit/img"
 	"image"
 	"io/fs"
 	"math"
@@ -12,7 +13,27 @@ import (
 	"strings"
 )
 
-func CreateJobs(root string) ([]*Job, error) {
+type Jobs struct {
+	children []*Job
+}
+
+func (j *Jobs) Total() int {
+	return len(j.children)
+}
+
+func (j *Jobs) Do(index int) error {
+	return j.children[index].Do()
+}
+
+func (j *Jobs) Info(index int) string {
+	return j.children[index].getDest()
+}
+
+func (j *Jobs) Summary() string {
+	return "OK"
+}
+
+func CreateJobs(root string) (*Jobs, error) {
 	markPNG := filepath.Join(root, "mark.png")
 	watermark, err := gg.LoadImage(markPNG)
 	if err != nil {
@@ -25,13 +46,15 @@ func CreateJobs(root string) ([]*Job, error) {
 	}
 	ret := make([]*Job, 0)
 	_ = filepath.WalkDir(markDir, func(path string, d fs.DirEntry, err error) error {
-		if !d.IsDir() {
+		if !d.IsDir() && !strings.HasPrefix(d.Name(), ".") {
 			job := CreateJob(watermark, root, path)
 			ret = append(ret, job)
 		}
 		return nil
 	})
-	return ret, nil
+	return &Jobs{
+		children: ret,
+	}, nil
 }
 
 func CreateJob(watermark image.Image, root string, path string) *Job {
@@ -41,11 +64,6 @@ func CreateJob(watermark image.Image, root string, path string) *Job {
 		mark: watermark,
 	}
 }
-
-const (
-	imageTypeJPEG = "JPEG"
-	imageTypePNG  = "PNG"
-)
 
 type Job struct {
 	root string
@@ -59,21 +77,22 @@ func (job *Job) Do() error {
 	dir := filepath.Dir(dest)
 	_ = os.MkdirAll(dir, fs.ModePerm)
 	//mark
-	fileType := job.getFileType()
-	switch fileType {
-	case imageTypePNG, imageTypeJPEG:
+	imageType := img.GetImageType(dest)
+	switch imageType {
+	case img.IMAGE_TYPE_JPEG, img.IMAGE_TYPE_PNG:
 		background, err := gg.LoadImage(job.path)
 		if err != nil {
 			return err
 		}
 		marked := job.drawMark(background)
-		return job.save(marked, fileType, dest)
+		return job.save(marked, imageType, dest)
 	default:
 		dt, er := os.ReadFile(job.path)
 		if er != nil {
 			_ = os.WriteFile(dest, dt, fs.ModePerm)
 		}
-		return errors.New("未知类型，直接拷贝：" + job.path)
+		fmt.Printf("[WARN ] 非图片直接拷贝：%s\n", job.path)
+		return nil
 	}
 }
 
@@ -99,12 +118,12 @@ func (job *Job) drawMark(background image.Image) image.Image {
 	return dc.Image()
 }
 
-func (job *Job) save(img image.Image, fileType string, dest string) error {
-	switch fileType {
-	case imageTypeJPEG:
-		return gg.SaveJPG(dest, img, 100)
-	case imageTypePNG:
-		return gg.SavePNG(dest, img)
+func (job *Job) save(image image.Image, imageType string, dest string) error {
+	switch imageType {
+	case img.IMAGE_TYPE_JPEG:
+		return gg.SaveJPG(dest, image, 100)
+	case img.IMAGE_TYPE_PNG:
+		return gg.SavePNG(dest, image)
 	default:
 		return nil
 	}
@@ -112,18 +131,4 @@ func (job *Job) save(img image.Image, fileType string, dest string) error {
 
 func (job *Job) getDest() string {
 	return strings.Replace(job.path, filepath.Join(job.root, "mark"), filepath.Join(job.root, "mark_new"), 1)
-}
-
-func (job *Job) getFileType() string {
-	dest := job.getDest()
-	arr := strings.Split(dest, ".")
-	suffix := arr[len(arr)-1]
-	switch suffix {
-	case "jpg", "JPG", "jpeg", "JPEG":
-		return imageTypeJPEG
-	case "png", "PNG":
-		return imageTypePNG
-	default:
-		return suffix
-	}
 }

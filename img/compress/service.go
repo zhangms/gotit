@@ -1,0 +1,50 @@
+package compress
+
+import (
+	"fmt"
+	"gotit/parallel"
+	"path/filepath"
+)
+
+func Do(args []string) {
+	usage()
+	doCompress(filepath.Dir(args[0]), 16)
+}
+
+func usage() {
+	msg := make([]string, 0)
+	msg = append(msg, "----------------------------------------------------")
+	msg = append(msg, "STEP1: 创建文件夹 workspace")
+	msg = append(msg, "STEP2: 打开网址：https://tinypng.com/developers 获取API key ")
+	msg = append(msg, "STEP3: 在workspace下新建文本文档 apikey.txt，将 STEP2 获取到的API key 写入 apikey.txt 第一行")
+	msg = append(msg, "STEP4: 在workspace下新建文件夹 compress, 将需要压缩的图片或文件夹放入其中")
+	msg = append(msg, "STEP5: 将本程序放入 workspace，双击运行，压缩后的文件夹将放入 compress_new 内")
+	msg = append(msg, "")
+	msg = append(msg, "最终目录结构如下：")
+	msg = append(msg, "")
+	msg = append(msg, "workspace")
+	msg = append(msg, "|-apikey.txt")
+	msg = append(msg, "|-gotit.exe")
+	msg = append(msg, "|-compress")
+	msg = append(msg, "  |-1.jpg")
+	msg = append(msg, "  |-2.png")
+	msg = append(msg, "  |-dir1")
+	msg = append(msg, "    |-a.jpg")
+	msg = append(msg, "    |-b.jpeg")
+	msg = append(msg, "  |-dir2")
+	msg = append(msg, "    |-c.png")
+	msg = append(msg, "    |-d.PNG")
+	msg = append(msg, "----------------------------------------------------")
+	for _, m := range msg {
+		fmt.Println(m)
+	}
+}
+
+func doCompress(workspace string, routine int) {
+	jobs, err := CreateJobs(workspace)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	parallel.Do(jobs, routine)
+}
