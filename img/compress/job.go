@@ -157,7 +157,7 @@ func sendCompressRequest(apiKeys []string, data []byte) (*compressResponse, erro
 	var globalErr error
 	for _, apikey := range apiKeys {
 		apikey = strings.TrimSpace(apikey)
-		if len(apikey) != len("45STxM73yGSTsQg6mFSvdV5XBX3zghr4") {
+		if len(apikey) != 32 {
 			continue
 		}
 		request, err := http.NewRequest("POST", "https://api.tinify.com/shrink", bytes.NewReader(data))
