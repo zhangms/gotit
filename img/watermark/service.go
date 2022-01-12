@@ -13,7 +13,6 @@ func Do(args []string) {
 
 func usage() {
 	msg := make([]string, 0)
-	msg = append(msg, "----------------------------------------------------")
 	msg = append(msg, "STEP1: 创建文件夹 workspace")
 	msg = append(msg, "STEP2: 水印必须是png格式，水印图片文件名改为 mark.png 放到 workspace")
 	msg = append(msg, "STEP3: 在 workspace 下创建文件夹 mark, 将所有需要加水印的图片或文件夹放入其中 ")
@@ -33,10 +32,11 @@ func usage() {
 	msg = append(msg, "  |-dir2")
 	msg = append(msg, "    |-c.png")
 	msg = append(msg, "    |-d.PNG")
-	msg = append(msg, "----------------------------------------------------")
+	fmt.Println("----------------------------------------------------")
 	for _, m := range msg {
-		fmt.Println(m)
+		fmt.Println("  ", m)
 	}
+	fmt.Println("----------------------------------------------------")
 }
 
 func doMark(workspace string, routine int) {

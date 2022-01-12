@@ -13,7 +13,6 @@ func Do(args []string) {
 
 func usage() {
 	msg := make([]string, 0)
-	msg = append(msg, "----------------------------------------------------")
 	msg = append(msg, "STEP1: 创建文件夹 workspace")
 	msg = append(msg, "STEP2: 打开网址：https://tinypng.cn/developers 获取API key ")
 	msg = append(msg, "STEP3: 在workspace下新建文本文档 apikey.txt，将 STEP2 获取到的API key 按行写入 apikey.txt")
@@ -35,10 +34,11 @@ func usage() {
 	msg = append(msg, "  |-dir2")
 	msg = append(msg, "    |-c.png")
 	msg = append(msg, "    |-d.PNG")
-	msg = append(msg, "----------------------------------------------------")
+	fmt.Println("----------------------------------------------------")
 	for _, m := range msg {
-		fmt.Println(m)
+		fmt.Println("  ", m)
 	}
+	fmt.Println("----------------------------------------------------")
 }
 
 func doCompress(workspace string, routine int) {
