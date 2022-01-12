@@ -3,10 +3,10 @@
 package main
 
 import (
-	"gotit/nav"
+	"gotit/cmd"
 	"os"
 )
 
 func main() {
-	nav.Start(os.Args...)
+	cmd.Interact(os.Args)
 }

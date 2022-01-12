@@ -1,4 +1,4 @@
-package nav
+package cmd
 
 import (
 	"fmt"
@@ -24,18 +24,18 @@ func (a *actor) usage() {
 	}
 }
 
-var navigates []*actor
+var commands []*actor
 
 func init() {
-	navigates = make([]*actor, 0)
-	navigates = append(navigates, &actor{
+	commands = make([]*actor, 0)
+	commands = append(commands, &actor{
 		id:   "watermarker",
 		name: "图片加水印",
 		action: func(args []string) error {
 			return watermark.Do(args)
 		},
 	})
-	navigates = append(navigates, &actor{
+	commands = append(commands, &actor{
 		id:   "img_compressor",
 		name: "图片压缩",
 		action: func(args []string) error {
@@ -44,7 +44,7 @@ func init() {
 	})
 }
 
-func Start(args ...string) {
+func Interact(args []string) {
 	printHeader()
 	for {
 		input := scanInput()
@@ -65,11 +65,11 @@ func Start(args ...string) {
 
 func exec(input string, args []string) {
 	index, err := strconv.Atoi(input)
-	if err != nil || index < 1 || index > len(navigates) {
+	if err != nil || index < 1 || index > len(commands) {
 		fmt.Println("请输入正确的数字")
 		return
 	}
-	n := navigates[index-1]
+	n := commands[index-1]
 	fmt.Println("开始执行：", n.name, "(姜姜出品)")
 	time.Sleep(time.Second)
 	err = n.action(args)
@@ -84,18 +84,18 @@ func exec(input string, args []string) {
 func usage(input string) {
 	input = string([]rune(input)[1:])
 	index, err := strconv.Atoi(input)
-	if err != nil || index < 1 || index > len(navigates) {
+	if err != nil || index < 1 || index > len(commands) {
 		fmt.Println("请输入正确的数字")
 		printHeader()
 		return
 	}
-	n := navigates[index-1]
+	n := commands[index-1]
 	fmt.Println(n.name)
 	n.usage()
 }
 
 func scanInput() string {
-	fmt.Printf("Opt>")
+	fmt.Printf("➜")
 	var input string
 	_, _ = fmt.Scanln(&input)
 	return strings.TrimSpace(input)
@@ -103,7 +103,7 @@ func scanInput() string {
 
 func printHeader() {
 	fmt.Printf("\n")
-	for i, n := range navigates {
+	for i, n := range commands {
 		fmt.Printf("输入%2d 执行:%s\n", i+1, n.name)
 	}
 	fmt.Printf("输入 h+数字 查看数字对应功能的帮助信息，例如: h1\n")
