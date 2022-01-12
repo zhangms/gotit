@@ -49,5 +49,5 @@ func Do(task Task, routine int) {
 	close(c)
 	wait.Wait()
 	elapsed := time.Since(begin) / time.Second
-	fmt.Printf("处理完成，耗时 %d 秒，共 %d 个任务，成功 %d 个，失败 %d 个, %s", elapsed, total, successCount, errCount, task.Summary())
+	fmt.Printf("处理完成，耗时 %d 秒，共 %d 个任务，成功 %d 个，失败 %d 个, %s\n", elapsed, total, successCount, errCount, task.Summary())
 }

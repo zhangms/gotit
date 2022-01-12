@@ -84,8 +84,8 @@ type Job struct {
 	root   string
 	path   string
 	apikey []string
-	input  int
-	output int
+	input  int64
+	output int64
 }
 
 func (job *Job) Do() error {
@@ -109,14 +109,16 @@ func (job *Job) Do() error {
 }
 
 func (job *Job) compress() error {
-	_, err := os.Stat(job.getDest())
-	if !os.IsNotExist(err) {
-		fmt.Printf("[WARN ] 已存在跳过：%s\n", job.getDest())
-		return nil
-	}
 	imageData, err := os.ReadFile(job.path)
 	if err != nil {
 		return err
+	}
+	inf, err := os.Stat(job.getDest())
+	if !os.IsNotExist(err) {
+		job.output = inf.Size()
+		job.input = int64(len(imageData))
+		fmt.Printf("[WARN ] 已存在跳过：%s\n", job.getDest())
+		return nil
 	}
 	resp, err := sendCompressRequest(job.apikey, imageData)
 	if err != nil {
@@ -138,11 +140,11 @@ type compressResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`
 	Input   struct {
-		Size int    `json:"size"`
+		Size int64  `json:"size"`
 		Type string `json:"type"`
 	}
 	Output struct {
-		Size   int     `json:"size"`
+		Size   int64   `json:"size"`
 		Type   string  `json:"type"`
 		Width  int     `json:"width"`
 		Height int     `json:"height"`

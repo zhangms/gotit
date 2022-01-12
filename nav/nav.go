@@ -4,16 +4,24 @@ import (
 	"fmt"
 	"gotit/img/compress"
 	"gotit/img/watermark"
+	resources "gotit/res"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type actor struct {
-	index  int
 	id     string
 	name   string
-	action func(args []string)
+	action func(args []string) error
+}
+
+func (a *actor) usage() {
+	data, err := resources.ReadData(fmt.Sprintf("usage/%s.md", a.id))
+	if err == nil {
+		fmt.Println(string(data))
+	}
 }
 
 var navigates []*actor
@@ -21,19 +29,17 @@ var navigates []*actor
 func init() {
 	navigates = make([]*actor, 0)
 	navigates = append(navigates, &actor{
-		index: 1,
-		id:    "watermarker",
-		name:  "图片加水印",
-		action: func(args []string) {
-			watermark.Do(args)
+		id:   "watermarker",
+		name: "图片加水印",
+		action: func(args []string) error {
+			return watermark.Do(args)
 		},
 	})
 	navigates = append(navigates, &actor{
-		index: 2,
-		id:    "img_compressor",
-		name:  "图片压缩",
-		action: func(args []string) {
-			compress.Do(args)
+		id:   "img_compressor",
+		name: "图片压缩",
+		action: func(args []string) error {
+			return compress.Do(args)
 		},
 	})
 }
@@ -41,35 +47,42 @@ func init() {
 func Start(args ...string) {
 	printHeader := func() {
 		fmt.Printf("\n")
-		for _, n := range navigates {
-			fmt.Printf("输入%2d 执行:%s\n", n.index, n.name)
+		for i, n := range navigates {
+			fmt.Printf("输入%2d 执行:%s\n", i+1, n.name)
 		}
 		fmt.Printf("输入 q 退出\n")
 	}
 
-	printHeader()
-	for {
+	scanInput := func() string {
 		fmt.Printf("Opt>")
 		var input string
 		_, _ = fmt.Scanln(&input)
-		if "q" == input {
-			fmt.Println("exit")
+		return strings.TrimSpace(input)
+	}
+
+	printHeader()
+	for {
+		input := scanInput()
+		switch input {
+		case "q":
 			os.Exit(0)
-		}
-		if len(input) == 0 {
+		case "":
 			continue
-		}
-		index, err := strconv.Atoi(input)
-		if err != nil {
-			fmt.Println("请输入数字编号")
-		}
-		for _, n := range navigates {
-			if index == n.index {
-				fmt.Println("开始执行：", n.name, "(姜姜出品)")
-				time.Sleep(2 * time.Second)
-				n.action(args)
+		default:
+			index, err := strconv.Atoi(input)
+			if err != nil || index < 1 || index > len(navigates) {
+				fmt.Println("请输入正确的数字")
+				continue
+			}
+			n := navigates[index-1]
+			fmt.Println("开始执行：", n.name, "(姜姜出品)")
+			time.Sleep(time.Second)
+			err = n.action(args)
+			if err != nil {
+				fmt.Println(err)
+				time.Sleep(time.Second)
+				n.usage()
 				printHeader()
-				break
 			}
 		}
 	}
