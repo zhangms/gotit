@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"gotit/parallel"
 	"path/filepath"
+	"time"
 )
 
 func Do(args []string) {
-	usage()
-	doMark(filepath.Dir(args[0]), 16)
+	err := doMark(filepath.Dir(args[0]), 16)
+	if err != nil {
+		fmt.Println(err)
+		time.Sleep(2 * time.Second)
+		usage()
+	}
 }
 
 func usage() {
@@ -34,16 +39,16 @@ func usage() {
 	msg = append(msg, "    |-d.PNG")
 	fmt.Println("----------------------------------------------------")
 	for _, m := range msg {
-		fmt.Println("  ", m)
+		fmt.Println(m)
 	}
 	fmt.Println("----------------------------------------------------")
 }
 
-func doMark(workspace string, routine int) {
+func doMark(workspace string, routine int) error {
 	jobs, err := CreateJobs(workspace)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	parallel.Do(jobs, routine)
+	return nil
 }

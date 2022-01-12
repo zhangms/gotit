@@ -6,6 +6,7 @@ import (
 	"gotit/img/watermark"
 	"os"
 	"strconv"
+	"time"
 )
 
 type actor struct {
@@ -39,7 +40,7 @@ func init() {
 
 func Start(args ...string) {
 	printHeader := func() {
-		fmt.Printf("\n\n-------------\n")
+		fmt.Printf("\n")
 		for _, n := range navigates {
 			fmt.Printf("输入%2d 执行:%s\n", n.index, n.name)
 		}
@@ -65,6 +66,7 @@ func Start(args ...string) {
 		for _, n := range navigates {
 			if index == n.index {
 				fmt.Println("开始执行：", n.name, "(姜姜出品)")
+				time.Sleep(2 * time.Second)
 				n.action(args)
 				printHeader()
 				break
