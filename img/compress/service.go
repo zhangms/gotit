@@ -14,7 +14,7 @@ func Do(args []string) {
 func usage() {
 	msg := make([]string, 0)
 	msg = append(msg, "STEP1: 创建文件夹 workspace")
-	msg = append(msg, "STEP2: 打开网址：https://tinypng.cn/developers 获取API key ")
+	msg = append(msg, "STEP2: 打开网址：https://tinypng.com/developers 获取API key ")
 	msg = append(msg, "STEP3: 在workspace下新建文本文档 apikey.txt，将 STEP2 获取到的API key 按行写入 apikey.txt")
 	msg = append(msg, "STEP4: 在workspace下新建文件夹 compress, 将需要压缩的图片或文件夹放入其中")
 	msg = append(msg, "STEP5: 将本程序放入 workspace，双击运行，压缩后的文件夹将放入 compress_new 内")
