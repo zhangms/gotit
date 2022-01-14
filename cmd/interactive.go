@@ -78,10 +78,18 @@ func egg(input string) bool {
 	switch i {
 	case "iloveu", "iloveyou", "loveyou", "loveu", "爱你":
 		dt, _ := resources.ReadData("egg/love")
-		fmt.Println(string(dt))
+		play(string(dt))
 		return true
 	default:
 		return false
+	}
+}
+
+func play(text string) {
+	arr := strings.Split(text, "\n")
+	for _, str := range arr {
+		time.Sleep(500 * time.Millisecond)
+		fmt.Println(str)
 	}
 }
 
