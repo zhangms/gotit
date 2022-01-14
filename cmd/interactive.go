@@ -72,6 +72,11 @@ func exec(input string, args []string) {
 	n := commands[index-1]
 	fmt.Println("开始执行：", n.name, "(姜姜出品)")
 	time.Sleep(time.Second)
+	err = resources.ApesTesting()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	err = n.action(args)
 	if err != nil {
 		fmt.Println(err)
