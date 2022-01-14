@@ -70,7 +70,7 @@ func Interact(args []string) {
 func egg(input string) bool {
 	i := strings.ToLower(strings.ReplaceAll(input, " ", ""))
 	switch i {
-	case "iloveu", "iloveyou", "loveyou", "loveu":
+	case "iloveu", "iloveyou", "loveyou", "loveu", "爱你":
 		dt, _ := resources.ReadData("egg/love")
 		fmt.Println(string(dt))
 		return true
