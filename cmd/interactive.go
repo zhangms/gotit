@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"gotit/img/compress"
 	"gotit/img/watermark"
@@ -114,10 +115,10 @@ func usage(input string) {
 }
 
 func scanInput() string {
-	fmt.Printf("➜")
-	var input string
-	_, _ = fmt.Scanln(&input)
-	return strings.TrimSpace(input)
+	fmt.Print("➜")
+	reader := bufio.NewReader(os.Stdin)
+	line, _, _ := reader.ReadLine()
+	return strings.TrimSpace(strings.TrimSpace(string(line)))
 }
 
 func printHeader() {
