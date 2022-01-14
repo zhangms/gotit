@@ -55,11 +55,25 @@ func Interact(args []string) {
 			os.Exit(0)
 			return
 		}
+		if egg(input) {
+			continue
+		}
 		if strings.HasPrefix(input, "h") {
 			usage(input)
 			continue
 		}
 		exec(input, args)
+	}
+}
+
+func egg(input string) bool {
+	i := strings.ToLower(strings.ReplaceAll(input, " ", ""))
+	switch i {
+	case "iloveu", "iloveyou":
+		fmt.Println("me too")
+		return true
+	default:
+		return false
 	}
 }
 
