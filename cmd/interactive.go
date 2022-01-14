@@ -117,7 +117,7 @@ func usage(input string) {
 }
 
 func scanInput() string {
-	fmt.Print("➜")
+	fmt.Print(" ➜ ")
 	reader := bufio.NewReader(os.Stdin)
 	line, _, _ := reader.ReadLine()
 	return strings.TrimSpace(strings.TrimSpace(string(line)))
