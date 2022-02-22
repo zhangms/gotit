@@ -89,8 +89,9 @@ func (job *Job) Do() error {
 	default:
 		dt, er := os.ReadFile(job.path)
 		if er != nil {
-			_ = os.WriteFile(dest, dt, fs.ModePerm)
+			return er
 		}
+		_ = os.WriteFile(dest, dt, fs.ModePerm)
 		fmt.Printf("[WARN ] 非图片直接拷贝：%s\n", job.path)
 		return nil
 	}
