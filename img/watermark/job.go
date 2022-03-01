@@ -105,7 +105,7 @@ func (job *Job) drawMark(background image.Image) image.Image {
 	mw := job.mark.Bounds().Dx()
 	mh := job.mark.Bounds().Dy()
 
-	rate := 0.75
+	rate := 0.5
 	scaleX := float64(bgw) * rate / float64(mw)
 	scaleY := float64(bgh) * rate / float64(mh)
 	scale := math.Min(scaleX, scaleY)
