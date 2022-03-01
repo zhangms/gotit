@@ -3,49 +3,42 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"gotit/img/compress"
-	"gotit/img/watermark"
 	resources "gotit/res"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type actor struct {
-	id     string
-	name   string
-	action func(args []string) error
+type Actor struct {
+	Id     string
+	Index  int
+	Name   string
+	Action func(args []string) error
 }
 
-func (a *actor) usage() {
-	data, err := resources.ReadData(fmt.Sprintf("usage/%s.md", a.id))
+func (a *Actor) usage() {
+	data, err := resources.ReadData(fmt.Sprintf("usage/%s.md", a.Id))
 	if err == nil {
 		fmt.Println(string(data))
 	}
 }
 
-var commands []*actor
+var commands []*Actor
 
 func init() {
-	commands = make([]*actor, 0)
-	commands = append(commands, &actor{
-		id:   "watermarker",
-		name: "图片加水印",
-		action: func(args []string) error {
-			return watermark.Do(args)
-		},
-	})
-	commands = append(commands, &actor{
-		id:   "img_compressor",
-		name: "图片压缩",
-		action: func(args []string) error {
-			return compress.Do(args)
-		},
-	})
+	commands = make([]*Actor, 0)
+}
+
+func RegisterActor(actor *Actor) {
+	commands = append(commands, actor)
 }
 
 func Interact(args []string) {
+	sort.Slice(commands, func(i, j int) bool {
+		return commands[i].Index < commands[j].Index
+	})
 	printHeader()
 	for {
 		input := scanInput()
@@ -100,9 +93,9 @@ func exec(input string, args []string) {
 		return
 	}
 	n := commands[index-1]
-	fmt.Println("开始执行：", n.name, "(姜姜出品)")
+	fmt.Println("开始执行：", n.Name, "(姜姜出品)")
 	time.Sleep(time.Second)
-	err = n.action(args)
+	err = n.Action(args)
 	if err != nil {
 		fmt.Println(err)
 		time.Sleep(time.Second)
@@ -120,7 +113,7 @@ func usage(input string) {
 		return
 	}
 	n := commands[index-1]
-	fmt.Println(n.name)
+	fmt.Println(n.Name)
 	n.usage()
 }
 
@@ -134,7 +127,7 @@ func scanInput() string {
 func printHeader() {
 	fmt.Printf("\n")
 	for i, n := range commands {
-		fmt.Printf("输入%2d 执行:%s\n", i+1, n.name)
+		fmt.Printf("输入%2d 执行:%s\n", i+1, n.Name)
 	}
 	fmt.Printf("输入 h+数字 查看数字对应功能的帮助信息，例如: h1\n")
 	fmt.Printf("输入 q 退出\n")
