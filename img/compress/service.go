@@ -20,7 +20,7 @@ import (
 func init() {
 	cmd.RegisterActor(&cmd.Actor{
 		Id:    "img_compressor",
-		Index: 1,
+		Index: img.Compress,
 		Name:  "图片压缩",
 		Action: func(args []string) error {
 			jobs, err := newJobs(filepath.Dir(args[0]))

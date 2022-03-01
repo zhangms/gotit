@@ -19,7 +19,7 @@ import (
 func init() {
 	cmd.RegisterActor(&cmd.Actor{
 		Id:    "img_resolution",
-		Index: 3,
+		Index: img.Resolution,
 		Name:  "图片分辨率修改",
 		Action: func(args []string) error {
 			jobs, err := newJobs(filepath.Dir(args[0]))

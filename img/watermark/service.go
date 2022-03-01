@@ -18,7 +18,7 @@ import (
 func init() {
 	cmd.RegisterActor(&cmd.Actor{
 		Id:    "watermarker",
-		Index: 0,
+		Index: img.Watermark,
 		Name:  "图片加水印",
 		Action: func(args []string) error {
 			jobs, err := newJobs(filepath.Dir(args[0]))
