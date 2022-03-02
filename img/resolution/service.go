@@ -113,7 +113,7 @@ type jobImpl struct {
 	configs []*config
 }
 
-func (job jobImpl) Do() error {
+func (job *jobImpl) Do() error {
 	//make dir
 	dest := job.getDest()
 	dir := filepath.Dir(dest)
@@ -154,7 +154,7 @@ func imgName(cfg *config, dest string) string {
 	return fmt.Sprintf("%s-%dx%d.%s", arr[0], cfg.width, cfg.height, arr[1])
 }
 
-func (job jobImpl) Info() string {
+func (job *jobImpl) Info() string {
 	return job.getDest()
 }
 
