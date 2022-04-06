@@ -12,6 +12,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -84,7 +85,16 @@ func parse(s string) *config {
 	if strings.HasPrefix(s, "#") {
 		return nil
 	}
-	arr := strings.Split(s, "*")
+
+	reg, _ := regexp.Compile("\\s+")
+	s = reg.ReplaceAllString(s, " ")
+
+	arr := strings.Split(s, " ")
+	name := arr[0]
+	if len(arr) != 2 {
+		return nil
+	}
+	arr = strings.Split(arr[1], "*")
 	if len(arr) != 2 {
 		return nil
 	}
@@ -97,12 +107,14 @@ func parse(s string) *config {
 		return nil
 	}
 	return &config{
+		name:   name,
 		width:  width,
 		height: height,
 	}
 }
 
 type config struct {
+	name   string
 	width  int
 	height int
 }
@@ -114,12 +126,8 @@ type jobImpl struct {
 }
 
 func (job *jobImpl) Do() error {
-	//make dir
-	dest := job.getDest()
-	dir := filepath.Dir(dest)
-	_ = os.MkdirAll(dir, fs.ModePerm)
 	//chg resolution
-	imageType := img.GetImageType(dest)
+	imageType := img.GetImageType(job.path)
 	switch imageType {
 	case img.IMAGE_TYPE_JPEG, img.IMAGE_TYPE_PNG:
 		background, err := gg.LoadImage(job.path)
@@ -131,7 +139,10 @@ func (job *jobImpl) Do() error {
 			if er != nil {
 				return er
 			}
-			str := imgName(cfg, dest)
+			dest := job.getDest(cfg)
+			dir := filepath.Dir(dest)
+			_ = os.MkdirAll(dir, fs.ModePerm)
+			str := destImgName(cfg, dest)
 			er = job.save(ni, imageType, str)
 			if er != nil {
 				return er
@@ -139,27 +150,25 @@ func (job *jobImpl) Do() error {
 		}
 		return nil
 	default:
-		dt, er := os.ReadFile(job.path)
-		if er != nil {
-			return er
-		}
-		_ = os.WriteFile(dest, dt, fs.ModePerm)
-		fmt.Printf("[WARN ] 非图片直接拷贝：%s\n", job.path)
+		fmt.Printf("[WARN ] 非图片不处理：%s\n", job.path)
 		return nil
 	}
 }
 
-func imgName(cfg *config, dest string) string {
+func destImgName(cfg *config, dest string) string {
 	arr := strings.Split(dest, ".")
 	return fmt.Sprintf("%s-%dx%d.%s", arr[0], cfg.width, cfg.height, arr[1])
 }
 
 func (job *jobImpl) Info() string {
-	return job.getDest()
+	return job.path
 }
 
-func (job *jobImpl) getDest() string {
-	return strings.Replace(job.path, filepath.Join(job.root, "resolution"), filepath.Join(job.root, "resolution_new"), 1)
+func (job *jobImpl) getDest(cfg *config) string {
+	return strings.Replace(job.path,
+		filepath.Join(job.root, "resolution"),
+		filepath.Join(job.root, "resolution_new", cfg.name, fmt.Sprintf("%dx%d", cfg.width, cfg.height)),
+		1)
 }
 
 func (job *jobImpl) chg(background image.Image, cfg *config) (image.Image, error) {
