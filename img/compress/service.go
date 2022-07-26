@@ -133,7 +133,7 @@ func (job *jobImpl) compress() error {
 		return err
 	}
 	inf, err := os.Stat(job.getDest())
-	if os.IsExist(err) {
+	if !os.IsNotExist(err) {
 		job.output = inf.Size()
 		job.input = int64(len(imageData))
 		fmt.Printf("[WARN ] 已存在跳过：%s\n", job.getDest())
