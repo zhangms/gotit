@@ -11,6 +11,7 @@ import (
 	"gotit/parallel"
 	"io/fs"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -71,7 +72,18 @@ func readApikey(root string) ([]string, error) {
 	keys = strings.ReplaceAll(keys, "\r\n", "\n")
 	keys = strings.ReplaceAll(keys, "\r", "\n")
 	apiKeys := strings.Split(keys, "\n")
-	return apiKeys, nil
+
+	ret := make([]string, 0)
+	for _, key := range apiKeys {
+		k := strings.TrimSpace(key)
+		if len(k) == 32 {
+			ret = append(ret, k)
+		}
+	}
+	if len(ret) > 0 {
+		return ret, nil
+	}
+	return nil, errors.New("无可用的apikey")
 }
 
 func newJob(apikey []string, root string, path string) *jobImpl {
@@ -121,7 +133,7 @@ func (job *jobImpl) compress() error {
 		return err
 	}
 	inf, err := os.Stat(job.getDest())
-	if !os.IsNotExist(err) {
+	if os.IsExist(err) {
 		job.output = inf.Size()
 		job.input = int64(len(imageData))
 		fmt.Printf("[WARN ] 已存在跳过：%s\n", job.getDest())
@@ -161,12 +173,17 @@ type compressResponse struct {
 }
 
 func sendCompressRequest(apiKeys []string, data []byte) (*compressResponse, error) {
+	keys := make([]string, 0)
+	for _, s := range apiKeys {
+		keys = append(keys, s)
+	}
+	rand.Shuffle(len(keys), func(i, j int) {
+		t := keys[i]
+		keys[i] = keys[j]
+		keys[j] = t
+	})
 	var globalErr error
-	for _, apikey := range apiKeys {
-		apikey = strings.TrimSpace(apikey)
-		if len(apikey) != 32 {
-			continue
-		}
+	for _, apikey := range keys {
 		request, err := http.NewRequest("POST", "https://api.tinify.com/shrink", bytes.NewReader(data))
 		if err != nil {
 			return nil, err

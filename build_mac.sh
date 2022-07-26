@@ -2,4 +2,4 @@
 #go generate
 #export GOOS=windows
 #export GOARCH=amd64
-go build -o gotitmac.exe
+go build -o gotitmac
