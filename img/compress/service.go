@@ -28,7 +28,7 @@ func init() {
 			if err != nil {
 				return err
 			}
-			parallel.Do(jobs, 16)
+			parallel.Do(jobs, 8)
 			return nil
 		},
 	})
