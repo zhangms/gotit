@@ -1,6 +1,6 @@
 #!/bin/bash
 
-go generate
+#go generate
 export GOOS=windows
 export GOARCH=amd64
 go build -o gotitwindows.exe
