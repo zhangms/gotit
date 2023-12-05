@@ -69,10 +69,10 @@ func egg(input string) bool {
 
 	i := strings.ToLower(strings.ReplaceAll(input, " ", ""))
 	switch i {
-	case "iloveu", "iloveyou", "loveyou", "loveu", "爱你":
-		dt, _ := resources.ReadData("egg/love")
-		play(string(dt))
-		return true
+	//case "iloveu", "iloveyou", "loveyou", "loveu", "爱你":
+	//	dt, _ := resources.ReadData("egg/love")
+	//	play(string(dt))
+	//	return true
 	default:
 		return false
 	}
@@ -93,7 +93,7 @@ func exec(input string, args []string) {
 		return
 	}
 	n := commands[index-1]
-	fmt.Println("开始执行：", n.Name, "(姜姜出品)")
+	fmt.Println("开始执行：", n.Name)
 	time.Sleep(time.Second)
 	err = n.Action(args)
 	if err != nil {
